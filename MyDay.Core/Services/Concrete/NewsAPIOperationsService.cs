@@ -63,7 +63,7 @@ namespace MyDay.Core.Services.Concrete
                     return new TopHeadlinesResponseWrapper
                     {
                         IsSuccess = false,
-                        Error = JsonSerializer.Deserialize<ErrorResponseDto>(getTopHeadLinesResult.Payload)
+                        Error = JsonSerializer.Deserialize<NewsAPIErrorResponseDto>(getTopHeadLinesResult.Payload)
                     };
                 }
                 else

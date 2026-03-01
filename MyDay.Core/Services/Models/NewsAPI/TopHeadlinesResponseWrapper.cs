@@ -4,6 +4,6 @@
     {
         public bool IsSuccess { get; set; }
         public TopHeadlinesResponseDto TopHeadlines { get; set; } = new TopHeadlinesResponseDto();
-        public ErrorResponseDto Error { get; set; } = new ErrorResponseDto();
+        public NewsAPIErrorResponseDto Error { get; set; } = new NewsAPIErrorResponseDto();
     }
 }

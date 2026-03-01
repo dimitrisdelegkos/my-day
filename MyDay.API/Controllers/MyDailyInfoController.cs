@@ -27,6 +27,8 @@ namespace MyDay.API.Controllers
         /// </summary>
         /// <param name="newsCategory">A category for filtering news articles</param>
         /// <param name="newsKeyword">A keyword for filtering news articles</param>
+        /// <param name="weatherLocationLatitude">The latitude of the location used for the weather daily summary. If null, the latitude of Athens is used.</param>
+        /// <param name="weatherLocationlongitude">The longitude of the location used for the weather daily summary. If null, the longitude of Athens is used.</param>
         /// <returns><see cref="DayTipsResponseDto"/></returns>
         /// <response code="200">The request was processed successfully</response>
         /// <response code="400">Bad request. Response should describe the cause of failure</response>
@@ -36,7 +38,8 @@ namespace MyDay.API.Controllers
         [ProducesResponseType(typeof(DayTipsResponseDto), StatusCodes.Status500InternalServerError)]
         [HttpGet(Name = "GetDayTips")]
         //[ResponseCache(Duration = 600, VaryByQueryKeys = ["newsCategory", "newsKeyword"])]
-        public async Task<IActionResult> GetDayTips(string newsCategory, string newsKeyword = "")
+        public async Task<IActionResult> GetDayTips(string newsCategory, string newsKeyword = "",
+            decimal? weatherLocationLatitude = null, decimal? weatherLocationlongitude = null)
         {
             try
             {
@@ -46,7 +49,23 @@ namespace MyDay.API.Controllers
                 if (!string.IsNullOrWhiteSpace(newsCategory) 
                     && !Enum.TryParse(newsCategory, out NewsArticleCategory newsArticleCategory))
                 {
-                    validationErrors.Add(new KeyValuePair<string, string>(Errors.InvalidValue, "Please assing a valid value for property newsCategory"));
+                    validationErrors.Add(new KeyValuePair<string, string>(Errors.InvalidValue, "Please assing a valid value for parameter newsCategory"));
+                }
+                if(weatherLocationLatitude != null)
+                {
+                    if(weatherLocationLatitude.Value > 90 
+                        || weatherLocationLatitude.Value < -90)
+                    {
+                        validationErrors.Add(new KeyValuePair<string, string>(Errors.InvalidValue, "Please assing a valid value for parameter weatherLocationLatitude"));
+                    }
+                }
+                if (weatherLocationlongitude != null)
+                {
+                    if (weatherLocationlongitude.Value > 180
+                        || weatherLocationlongitude.Value < -180)
+                    {
+                        validationErrors.Add(new KeyValuePair<string, string>(Errors.InvalidValue, "Please assing a valid value for parameter weatherLocationlongitude"));
+                    }
                 }
 
                 if (validationErrors.Count() > 0)
@@ -67,6 +86,11 @@ namespace MyDay.API.Controllers
                         {
                             Category = newsCategory,
                             Keyword = newsKeyword,
+                        },
+                        new WeatherFilteringCriteriaModel
+                        {  
+                            Latitude = weatherLocationLatitude,
+                            Longitude = weatherLocationlongitude
                         }
                 );
                 if (getTipOfTodayResult == null)
@@ -81,6 +105,7 @@ namespace MyDay.API.Controllers
                 }
 
                 bool foundNews = getTipOfTodayResult?.News.Count() > 0;
+                bool foundWeatherData = getTipOfTodayResult?.WeatherSummary != null;
 
                 return Ok(new DayTipsResponseDto
                 {
@@ -98,6 +123,17 @@ namespace MyDay.API.Controllers
                             Url = x.Url
                         })
                         : Enumerable.Empty<TopArticleHeadlineDto>()
+                    },
+                    WeatherPrognosis = new WeatherDailyReportDto
+                    {
+                        ResultMessage = !foundWeatherData ? "Could not retrieve the weather prognosis of today, please try again." : "Found weather data for today!",
+                        WeatherDailySummary = new WeatherDailySummaryDto
+                        {
+                            MaximumTemperature = getTipOfTodayResult?.WeatherSummary?.MaximumTemperature ?? 0,
+                            MinimumTemperature = getTipOfTodayResult?.WeatherSummary?.MinimumTemperature ?? 0,
+                            Humidity = getTipOfTodayResult?.WeatherSummary?.Humidity ?? 0,
+                            MaxWindSpeed = getTipOfTodayResult?.WeatherSummary?.MaxWindSpeed ?? 0
+                        }
                     }
                 });
             }

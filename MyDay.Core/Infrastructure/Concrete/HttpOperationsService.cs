@@ -20,7 +20,7 @@ namespace MyDay.Core.Infrastructure.Concrete
 
         public async Task<HttpResponseModel> Get(HttpRequestModel request)
         {
-            string correlationId = IntegrationHelper.GetCorrelationId();
+            string correlationId = ValuesHelper.GetCorrelationId();
             string targetSystem = request.TargetSystem;
 
             try

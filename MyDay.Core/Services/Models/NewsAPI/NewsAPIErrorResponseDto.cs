@@ -1,6 +1,6 @@
 ﻿namespace MyDay.Core.Services.Models.NewsAPI
 {
-    public class ErrorResponseDto
+    public class NewsAPIErrorResponseDto
     {
         public string Status { get; set; } = string.Empty;
         public string Code { get; set; } = string.Empty;

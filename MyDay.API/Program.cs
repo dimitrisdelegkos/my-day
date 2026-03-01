@@ -27,10 +27,15 @@ builder.Services.AddHttpClient("news-api", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(configuration.GetValue<int>("NewsAPISettings:Timeout")); 
 });
+builder.Services.AddHttpClient("open-weather-api", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(configuration.GetValue<int>("OpenWeatherAPISettings:Timeout"));
+});
 
 //=> MyDay.Core
 builder.Services.AddScoped<IHttpOperations, HttpOperationsService>();
 builder.Services.AddScoped<INewsOperations, NewsAPIOperationsService>();
+builder.Services.AddScoped<IWeatherOperations, OpenWeatherAPIOperationsService>();
 builder.Services.AddScoped<IDailyTipsOperations, DailyTipsOperationsService>();
 
 //=> Swagger

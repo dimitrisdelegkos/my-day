@@ -12,18 +12,23 @@ namespace MyDay.Core.Application.Concrete
     {
         private ILogger<DailyTipsOperationsService> _logger;
         private IConfiguration _configuration;
+
         private INewsOperations _newsOperationsService; 
+        private IWeatherOperations _weatherOperationsService;
 
         public DailyTipsOperationsService(ILogger<DailyTipsOperationsService> logger,
             IConfiguration configuration,
-            INewsOperations newsOperationsService)
+            INewsOperations newsOperationsService,
+            IWeatherOperations weatherOperationsService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _newsOperationsService = newsOperationsService ?? throw new ArgumentNullException(nameof(newsOperationsService));
+            _weatherOperationsService = weatherOperationsService ?? throw new ArgumentNullException(nameof(weatherOperationsService));
         }
 
-        public async Task<DayTipsModel?> GetTipsOfToday(NewsFilteringCriteriaModel newsFilteringCriteria)
+        public async Task<DayTipsModel?> GetTipsOfToday(NewsFilteringCriteriaModel newsFilteringCriteria, 
+            WeatherFilteringCriteriaModel weatherFilteringCriteria)
         {
             try
             {
@@ -36,8 +41,8 @@ namespace MyDay.Core.Application.Concrete
                 if (!dailyTopNewsHeadlinesResult.IsSuccess
                     || dailyTopNewsHeadlinesResult.TopHeadlines.TotalResults <= 0)
                 {
-                    _logger.LogTrace("No new could be retrieved for criteria: {NewsCriteria}", JsonSerializer.Serialize(newsFilteringCriteria));
-                    dailyTips.News = Enumerable.Empty<ArticleModel>();
+                    _logger.LogTrace("No news could be retrieved for criteria: {NewsCriteria}", JsonSerializer.Serialize(newsFilteringCriteria));
+                    dailyTips.News = null;
                 }
                 else
                 {
@@ -53,6 +58,33 @@ namespace MyDay.Core.Application.Concrete
 
                 #endregion
 
+                #region Get Weather
+
+                decimal latitude = weatherFilteringCriteria.Latitude == null
+                    ? _configuration.GetValue<decimal>("DailyTipsSettings:LocationLatitude")
+                    : weatherFilteringCriteria.Latitude.Value;
+                decimal longitude = weatherFilteringCriteria.Longitude == null
+                    ? _configuration.GetValue<decimal>("DailyTipsSettings:LocationLongitude")
+                    : weatherFilteringCriteria.Longitude.Value;
+
+                var dailyWeatherSummaryResult = await _weatherOperationsService.GetWeatherDailySummary(latitude, longitude, DateTime.Now.ToString("yyyy-MM-dd"));
+                if (!dailyWeatherSummaryResult.IsSuccess)
+                {
+                    _logger.LogTrace("No weather data could be retrieved for criteria: {WeatherCriteria}", JsonSerializer.Serialize(weatherFilteringCriteria));
+                    dailyTips.WeatherSummary = null;
+                }
+                else
+                {
+                    dailyTips.WeatherSummary = new WeatherSummaryModel
+                    {
+                        MaximumTemperature = dailyWeatherSummaryResult.WeatherDailySummary.Temperature.Max,
+                        MinimumTemperature = dailyWeatherSummaryResult.WeatherDailySummary.Temperature.Min,
+                        Humidity = dailyWeatherSummaryResult.WeatherDailySummary.Humidity.Afternoon,
+                        MaxWindSpeed = dailyWeatherSummaryResult.WeatherDailySummary.Wind.Max.Speed
+                    };
+                }
+
+                #endregion
 
                 return dailyTips;
             }

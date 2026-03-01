@@ -18,5 +18,9 @@ namespace MyDay.API.Models
         /// Contains all the proposed articles that somebody can read today
         /// </summary>
         public NewsDto NewsToRead { get; set; } = new NewsDto();
+        /// <summary>
+        /// The details of the weather for today (i.e. temperature, humidity, wind speed)
+        /// </summary>
+        public WeatherDailyReportDto WeatherPrognosis { get; set; } = new WeatherDailyReportDto();
     }
 }

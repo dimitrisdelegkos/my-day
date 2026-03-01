@@ -8,6 +8,6 @@
 
         public string HttpClient { get; set; } = string.Empty;
         public string ContentType {  get; set; } = string.Empty;
-        public string TargetSystem { get; set; } = string.Empty;
+        public string TargetSystem { get; set; } = string.Empty; 
     }
 }

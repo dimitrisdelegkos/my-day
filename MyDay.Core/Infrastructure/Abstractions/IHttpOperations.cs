@@ -6,11 +6,6 @@ namespace MyDay.Core.Infrastructure.Abstractions
     {
         Task<HttpResponseModel> Get(HttpRequestModel request);
 
-        //Task<TResponse> Post<TRequest, TResponse>(IEnumerable<KeyValuePair<string, string>> headers,
-        //    string url,
-        //    IEnumerable<KeyValuePair<string, string>> replacements,
-        //    TRequest body,
-        //    string httpClient,
-        //    string system); 
+        Task<HttpResponseModel> Post<TRequest>(HttpRequestModel request, TRequest requestBody);
     }
 }

@@ -15,20 +15,24 @@ namespace MyDay.Core.Application.Concrete
 
         private INewsOperations _newsOperationsService; 
         private IWeatherOperations _weatherOperationsService;
+        private IMusicOperations _musicOperationsService;
 
         public DailyTipsOperationsService(ILogger<DailyTipsOperationsService> logger,
             IConfiguration configuration,
             INewsOperations newsOperationsService,
-            IWeatherOperations weatherOperationsService)
+            IWeatherOperations weatherOperationsService,
+            IMusicOperations musicOperationsService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _newsOperationsService = newsOperationsService ?? throw new ArgumentNullException(nameof(newsOperationsService));
             _weatherOperationsService = weatherOperationsService ?? throw new ArgumentNullException(nameof(weatherOperationsService));
+            _musicOperationsService = musicOperationsService ?? throw new ArgumentNullException(nameof(musicOperationsService)); ;
         }
 
         public async Task<DayTipsModel?> GetTipsOfToday(NewsFilteringCriteriaModel newsFilteringCriteria, 
-            WeatherFilteringCriteriaModel weatherFilteringCriteria)
+            WeatherFilteringCriteriaModel weatherFilteringCriteria,
+            MusicFilteringCriteriaModel musicFilteringCriteria)
         {
             try
             {

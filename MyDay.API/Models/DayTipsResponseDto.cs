@@ -22,5 +22,9 @@ namespace MyDay.API.Models
         /// The details of the weather for today (i.e. temperature, humidity, wind speed)
         /// </summary>
         public WeatherDailyReportDto WeatherPrognosis { get; set; } = new WeatherDailyReportDto();
+        /// <summary>
+        /// A list of proposed music to listen to today
+        /// </summary>
+        public MusicDto MusicForToday { get; set; } = new MusicDto();
     }
 }

@@ -1,0 +1,15 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/MyDay/config
+/.vs/MyDay/CopilotIndices/17.14.1204.46620
+/.vs/MyDay/DesignTimeBuild
+/.vs/MyDay/FileContentIndex
+/.vs/MyDay/v17
+/MyDay.API/bin/Debug/net8.0
+/MyDay.API/obj
+/MyDay.Core/bin/Debug/net8.0
+/MyDay.Core/obj
+/MyDay.Integrations/obj
+/.vs/ProjectEvaluation

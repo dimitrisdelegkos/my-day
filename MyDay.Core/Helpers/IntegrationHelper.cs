@@ -1,0 +1,7 @@
+﻿namespace MyDay.Core.Helpers
+{
+    public class IntegrationHelper
+    {
+        public static string GetCorrelationId() => Guid.NewGuid().ToString().Trim('{', '}').Replace("-", "");
+    }
+}

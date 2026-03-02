@@ -13,3 +13,5 @@
 /MyDay.Core/obj
 /MyDay.Integrations/obj
 /.vs/ProjectEvaluation
+/MyDay.Tests/bin/Debug/net8.0
+/MyDay.Tests/obj

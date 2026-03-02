@@ -1,4 +1,4 @@
-﻿using MyDay.Core.Services.Models.NewsAPI;
+﻿using MyDay.Core.Services.Models.NewsAPI.TopHeadlines;
 
 namespace MyDay.Core.Services.Abstractions
 {

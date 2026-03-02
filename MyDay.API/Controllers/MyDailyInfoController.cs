@@ -3,7 +3,9 @@ using MyDay.API.Enums;
 using MyDay.API.Models;
 using MyDay.Core;
 using MyDay.Core.Application.Abstractions;
-using MyDay.Core.Application.Models;
+using MyDay.Core.Application.Models.Music;
+using MyDay.Core.Application.Models.News;
+using MyDay.Core.Application.Models.Weather;
 
 namespace MyDay.API.Controllers
 {
@@ -23,8 +25,9 @@ namespace MyDay.API.Controllers
         }
 
         /// <summary>
-        /// Accepts a set of criteria and return top news headlines, a proposed music playlist and the weather report for today
+        /// Accepts a set of criteria and return top news headlines, a group of proposed music playlist and the weather report for today
         /// </summary>
+        /// <param name="musicKeyword">A keyword for fetching related music playlists</param>
         /// <param name="newsCategory">A category for filtering news articles</param>
         /// <param name="newsKeyword">A keyword for filtering news articles</param>
         /// <param name="weatherLocationLatitude">The latitude of the location used for the weather daily summary. If null, the latitude of Athens is used.</param>
@@ -38,14 +41,19 @@ namespace MyDay.API.Controllers
         [ProducesResponseType(typeof(DayTipsResponseDto), StatusCodes.Status500InternalServerError)]
         [HttpGet(Name = "GetDayTips")]
         //[ResponseCache(Duration = 600, VaryByQueryKeys = ["newsCategory", "newsKeyword"])]
-        public async Task<IActionResult> GetDayTips(string newsCategory, string newsKeyword = "",
+        public async Task<IActionResult> GetDayTips(string musicKeyword, 
+            string newsCategory, string newsKeyword = "",
             decimal? weatherLocationLatitude = null, decimal? weatherLocationlongitude = null)
         {
             try
             {
                 #region Validation
 
-                var validationErrors = new List<KeyValuePair<string, string>>(); 
+                var validationErrors = new List<KeyValuePair<string, string>>();
+                if (string.IsNullOrWhiteSpace(musicKeyword))
+                {
+                    validationErrors.Add(new KeyValuePair<string, string>(Errors.InvalidValue, "Please assing a value for parameter musicKeyword"));
+                }
                 if (!string.IsNullOrWhiteSpace(newsCategory) 
                     && !Enum.TryParse(newsCategory, out NewsArticleCategory newsArticleCategory))
                 {
@@ -91,6 +99,10 @@ namespace MyDay.API.Controllers
                         {  
                             Latitude = weatherLocationLatitude,
                             Longitude = weatherLocationlongitude
+                        },
+                        new MusicFilteringCriteriaModel
+                        {
+                            Keyword = musicKeyword
                         }
                 );
                 if (getTipOfTodayResult == null)
@@ -104,16 +116,17 @@ namespace MyDay.API.Controllers
                        });
                 }
 
-                bool foundNews = getTipOfTodayResult?.News.Count() > 0;
+                bool foundNewsData = getTipOfTodayResult?.News.Count() > 0;
                 bool foundWeatherData = getTipOfTodayResult?.WeatherSummary != null;
+                bool foundMusicData = getTipOfTodayResult?.Playlists.Count() > 0; 
 
                 return Ok(new DayTipsResponseDto
                 {
                     Status = Status.SUCCESS,
                     NewsToRead = new NewsDto 
                     {
-                       ResultMessage = !foundNews ? "Could not retrieve top headlines of today, please try again." : $"Found {getTipOfTodayResult?.News.Count()} articles.",
-                       TopArticleHeadlines = foundNews
+                       ResultMessage = !foundNewsData ? "Could not retrieve top headlines of today, please try again." : $"Found {getTipOfTodayResult?.News.Count()} articles.",
+                       TopArticleHeadlines = foundNewsData
                         ? getTipOfTodayResult?.News.Select(x=> new TopArticleHeadlineDto
                         {
                             Author = x.Author,
@@ -134,6 +147,19 @@ namespace MyDay.API.Controllers
                             Humidity = getTipOfTodayResult?.WeatherSummary?.Humidity ?? 0,
                             MaxWindSpeed = getTipOfTodayResult?.WeatherSummary?.MaxWindSpeed ?? 0
                         }
+                    },
+                    MusicForToday = new MusicDto
+                    {
+                        ResultMessage = !foundMusicData ? "Could not retrieve any music for today, please try again." : $"Nice tunes match with the keyword {musicKeyword}!",
+                        TopPlaylists  = foundMusicData
+                        ? getTipOfTodayResult?.Playlists.Select(x => new PlaylistDto
+                        {
+                            Title = x.Name,
+                            Summary = x.Description,
+                            Tracks = x.Songs,
+                            Url = x.Link
+                        })
+                        : Enumerable.Empty<PlaylistDto>()
                     }
                 });
             }

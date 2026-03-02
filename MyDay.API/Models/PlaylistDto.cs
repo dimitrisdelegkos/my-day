@@ -7,6 +7,10 @@
         /// </summary>
         public string Title { get; set; } = string.Empty;
         /// <summary>
+        /// A short summary describing the music playlist
+        /// </summary>
+        public string Summary { get; set; } = string.Empty;
+        /// <summary>
         /// The number of the music tracks that are included in the playlist
         /// </summary>
         public int Tracks { get; set; }

@@ -24,10 +24,6 @@ builder.Services.AddResponseCaching();
 builder.Services.AddHttpClient();
 
 //=> HTTP Clients
-
-string tidalClientCredentials = $"{configuration.GetValue<string>("TidalAPISettings:ClientId")}:{configuration.GetValue<string>("TidalAPISettings:ClientSecret")}";
-string tidalBasicAuthHeaderValue = Convert.ToBase64String(Encoding.UTF8.GetBytes(tidalClientCredentials));
-
 builder.Services.AddHttpClient("news-api", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(configuration.GetValue<int>("NewsAPISettings:Timeout")); 
@@ -43,7 +39,6 @@ builder.Services.AddHttpClient("tidal-api", client =>
 builder.Services.AddHttpClient("tidal-api-auth", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(configuration.GetValue<int>("TidalAPISettings:Timeout"));
-    client.DefaultRequestHeaders.Add("Authorization", $"Basic {tidalBasicAuthHeaderValue}"); 
 });
 
 //=> MyDay.Core

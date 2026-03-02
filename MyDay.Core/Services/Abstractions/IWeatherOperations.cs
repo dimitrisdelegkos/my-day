@@ -1,4 +1,4 @@
-﻿using MyDay.Core.Services.Models.OpenWeatherAPI;
+﻿using MyDay.Core.Services.Models.OpenWeatherAPI.DailySummary;
 
 namespace MyDay.Core.Services.Abstractions
 {

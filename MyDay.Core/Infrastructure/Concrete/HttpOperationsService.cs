@@ -45,7 +45,7 @@ namespace MyDay.Core.Infrastructure.Concrete
                             request.Url = request.Url.Replace(requestUrlQueryParameter.Key, requestUrlQueryParameter.Value);
                     }
 
-                    using (var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, request.Url))
+                    using (var httpRequestMessage = new HttpRequestMessage(httpMethod, request.Url))
                     {
                         httpRequestMessage.Headers.TryAddWithoutValidation("Content-Type", request.ContentType);
                         foreach (var header in request.Headers ?? Enumerable.Empty<KeyValuePair<string, string>>())

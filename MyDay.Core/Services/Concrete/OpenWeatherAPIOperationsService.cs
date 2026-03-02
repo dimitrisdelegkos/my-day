@@ -3,7 +3,8 @@ using Microsoft.Extensions.Logging;
 using MyDay.Core.Infrastructure.Abstractions;
 using MyDay.Core.Infrastructure.Models;
 using MyDay.Core.Services.Abstractions;
-using MyDay.Core.Services.Models.OpenWeatherAPI;
+using MyDay.Core.Services.Models.OpenWeatherAPI.Common;
+using MyDay.Core.Services.Models.OpenWeatherAPI.DailySummary;
 using System.Text.Json;
 
 namespace MyDay.Core.Services.Concrete
@@ -68,7 +69,7 @@ namespace MyDay.Core.Services.Concrete
             }
             catch (Exception exception)
             {
-                _logger.LogError("An exception occurred during OpenWeatherAPI invocation: {Error}", exception.Message);
+                _logger.LogError("An exception occurred during OpenWeatherAPI-GetWeatherDailySummary invocation: {Error}", exception.Message);
                 return new WeatherDailySummaryResponseWrapper
                 {
                     IsSuccess = false

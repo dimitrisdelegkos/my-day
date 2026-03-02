@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using MyDay.Core.Helpers;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using MyDay.Core.Infrastructure.Abstractions;
 using MyDay.Core.Infrastructure.Models;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
@@ -11,12 +12,15 @@ namespace MyDay.Core.Infrastructure.Concrete
     {
         private readonly IHttpClientFactory _clientFactory;
         private readonly ILogger<HttpOperationsService> _logger;
+        private readonly IMemoryCache _memoryCache;
 
         public HttpOperationsService(IHttpClientFactory clientFactory,
-            ILogger<HttpOperationsService> logger)
+            ILogger<HttpOperationsService> logger,
+            IMemoryCache memoryCache)
         {
             _clientFactory = clientFactory ?? throw new ArgumentException(nameof(clientFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
         }
 
         public async Task<HttpResponseModel> Get(HttpRequestModel request)
@@ -32,12 +36,15 @@ namespace MyDay.Core.Infrastructure.Concrete
             string requestBody)
         {
             {
-                string correlationId = ValuesHelper.GetCorrelationId();
+                string correlationId = request.CorrelationId;
                 string targetSystem = request.TargetSystem;
                 string methodName = httpMethod == HttpMethod.Get ? "GET" : "POST";
 
                 try
                 {
+                    var performanceTimer = new Stopwatch();
+                    performanceTimer.Start();
+
                     var httpClient = this._clientFactory.CreateClient(request.HttpClient);
                     if (request.QueryParameters?.Any() ?? false)
                     {
@@ -76,30 +83,52 @@ namespace MyDay.Core.Infrastructure.Concrete
                             };
                             _logger.LogTrace("{HttpMethod} request {CorrelationId} to: {TargetSystem}, URL: {RequestUrl}, Response Details: {ResponseDetails}", methodName, correlationId, targetSystem, request.Url, JsonSerializer.Serialize(responseDetails));
 
+                            string payload = string.Empty;
+                            bool hasError = false;
+                            var errors = new List<KeyValuePair<string, string>>();
+
                             if (httpResponse.IsSuccessStatusCode)
                             {
-                                return new HttpResponseModel
-                                {
-                                    Payload = responseContent
-                                };
+                                payload = responseContent;
                             }
                             else
                             {
                                 string integrationFailedError = $"Integration failed for target system {targetSystem}, correlationId: {correlationId}";
                                 _logger.LogError("{HttpMethod} request {CorrelationId} to: {TargetSystem}, URL: {RequestUrl}, Error: {Error}", httpMethod, correlationId, targetSystem, request.Url, integrationFailedError);
 
-                                return new HttpResponseModel
-                                {
-                                    HasError = true,
-                                    Errors = new List<KeyValuePair<string, string>>
+                                hasError = true;
+                                errors = new List<KeyValuePair<string, string>>
                                     {
                                         new KeyValuePair<string, string>(Errors.IntegrationFailed,integrationFailedError)
-                                    },
-                                    Payload = string.Empty
-                                };
+                                    };
                             }
+
+                            #region Performance Metrics
+
+                            performanceTimer.Stop();
+                            var performanceMetric = (targetSystem, correlationId, performanceTimer.Elapsed.TotalMilliseconds);
+
+                            var externalAPICallsMetrics = _memoryCache.Get<List<(string TargetSystem, string CorrelationId, double TotalMilliseconds)>>("external-api-calls-metrics");
+                            if (externalAPICallsMetrics == null)
+                            {
+                                _memoryCache.Set("external-api-calls-metrics", new List<(string, string, double)> { performanceMetric });
+                            }
+                            else 
+                            {
+                                externalAPICallsMetrics.Add(performanceMetric);
+                                _memoryCache.Set("external-api-calls-metrics", externalAPICallsMetrics);
+                            }
+
+                            #endregion
+
+                            return new HttpResponseModel
+                            {
+                                HasError = hasError,
+                                Errors = errors,
+                                Payload = payload
+                            };
                         }
-                    }
+                    } 
                 }
                 catch (Exception exception)
                 {

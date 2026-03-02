@@ -2,6 +2,8 @@
 {
     public class HttpRequestModel
     {
+        public string CorrelationId { get; set; } = Guid.NewGuid().ToString().Trim('{', '}').Replace("-", "");
+
         public string Url { get; set; } = string.Empty;
         public IEnumerable<KeyValuePair<string, string>> Headers { get; set; } = Enumerable.Empty<KeyValuePair<string, string>>();
         public IEnumerable<KeyValuePair<string, string>> QueryParameters { get; set; } = Enumerable.Empty<KeyValuePair<string, string>>();

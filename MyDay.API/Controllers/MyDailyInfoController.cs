@@ -40,7 +40,6 @@ namespace MyDay.API.Controllers
         [ProducesResponseType(typeof(DayTipsResponseDto), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(DayTipsResponseDto), StatusCodes.Status500InternalServerError)]
         [HttpGet(Name = "GetDayTips")]
-        //[ResponseCache(Duration = 600, VaryByQueryKeys = ["newsCategory", "newsKeyword"])]
         public async Task<IActionResult> GetDayTips(string musicKeyword, 
             string newsCategory, string newsKeyword = "",
             decimal? weatherLocationLatitude = null, decimal? weatherLocationlongitude = null)

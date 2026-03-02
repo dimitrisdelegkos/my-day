@@ -5,7 +5,6 @@ using MyDay.Core.Infrastructure.Concrete;
 using MyDay.Core.Services.Abstractions;
 using MyDay.Core.Services.Concrete;
 using System.Reflection;
-using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +53,7 @@ builder.Services.AddScoped<INewsOperations, NewsAPIOperationsService>();
 builder.Services.AddScoped<IWeatherOperations, OpenWeatherAPIOperationsService>();
 builder.Services.AddScoped<IMusicOperations, TidalAPIOperationsService>();
 builder.Services.AddScoped<IDailyTipsOperations, DailyTipsOperationsService>();
+builder.Services.AddScoped<IPerformanceOperations, PerformanceOperationsService>();
 
 //=> Swagger
 builder.Services.AddEndpointsApiExplorer();

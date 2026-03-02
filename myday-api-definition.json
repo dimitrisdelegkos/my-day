@@ -1,0 +1,427 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "MyDay.API",
+    "version": "1.0"
+  },
+  "paths": {
+    "/MyDailyInfo": {
+      "get": {
+        "tags": [
+          "MyDailyInfo"
+        ],
+        "summary": "Accepts a set of criteria and return top news headlines, a group of proposed music playlist and the weather report for today",
+        "operationId": "GetDayTips",
+        "parameters": [
+          {
+            "name": "musicKeyword",
+            "in": "query",
+            "description": "A keyword for fetching related music playlists",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "newsCategory",
+            "in": "query",
+            "description": "A category for filtering news articles",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "newsKeyword",
+            "in": "query",
+            "description": "A keyword for filtering news articles",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "weatherLocationLatitude",
+            "in": "query",
+            "description": "The latitude of the location used for the weather daily summary. If null, the latitude of Athens is used.",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "weatherLocationlongitude",
+            "in": "query",
+            "description": "The longitude of the location used for the weather daily summary. If null, the longitude of Athens is used.",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request was processed successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Response should describe the cause of failure",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Response should describe the cause of failure",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DayTipsResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Performance": {
+      "get": {
+        "tags": [
+          "Performance"
+        ],
+        "summary": "Returns the performance metrics per integrated API",
+        "operationId": "GetPerformanceMetrics",
+        "responses": {
+          "200": {
+            "description": "The request was processed successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If no metrics are found, 404 is returned",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Response should describe the cause of failure",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceMetricsResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DayTipsResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StringStringKeyValuePair"
+            },
+            "description": "In case of a failed request, all the errors are returned to this array, in the form of error code-error message pairs.",
+            "nullable": true
+          },
+          "newsToRead": {
+            "$ref": "#/components/schemas/NewsDto"
+          },
+          "weatherPrognosis": {
+            "$ref": "#/components/schemas/WeatherDailyReportDto"
+          },
+          "musicForToday": {
+            "$ref": "#/components/schemas/MusicDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MusicDto": {
+        "type": "object",
+        "properties": {
+          "resultMessage": {
+            "type": "string",
+            "description": "A message indicating if any playlist results where found",
+            "nullable": true
+          },
+          "topPlaylists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaylistDto"
+            },
+            "description": "A list of the top music playlists matching the incoming criteria",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewsDto": {
+        "type": "object",
+        "properties": {
+          "resultMessage": {
+            "type": "string",
+            "description": "A message indicating if any news results where found",
+            "nullable": true
+          },
+          "topArticleHeadlines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopArticleHeadlineDto"
+            },
+            "description": "A list of the top headlines matching the incoming criteria",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PerformanceMetricsResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StringStringKeyValuePair"
+            },
+            "description": "In case of a failed request, all the errors are returned to this array, in the form of error code-error message pairs.",
+            "nullable": true
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TargetSystemMetricsDto"
+            },
+            "description": "The metrics of performance, presented per integrated system",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlaylistDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The title of the music playlist",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "description": "A short summary describing the music playlist",
+            "nullable": true
+          },
+          "tracks": {
+            "type": "integer",
+            "description": "The number of the music tracks that are included in the playlist",
+            "format": "int32"
+          },
+          "url": {
+            "type": "string",
+            "description": "The URL of the playlist",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Status": {
+        "enum": [
+          "SUCCESS",
+          "FAILURE"
+        ],
+        "type": "string"
+      },
+      "StringStringKeyValuePair": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "nullable": true
+          },
+          "value": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TargetSystemMetricsDto": {
+        "type": "object",
+        "properties": {
+          "systemName": {
+            "type": "string",
+            "description": "The name of the system",
+            "nullable": true
+          },
+          "allocatedRequests": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "The count of the requests of the system allocated as fast, average or slow",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TopArticleHeadlineDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The title of the article",
+            "nullable": true
+          },
+          "author": {
+            "type": "string",
+            "description": "The author of the article",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "The URL of the article",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "description": "The source of the article",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "description": "The publish date of the article",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeatherDailyReportDto": {
+        "type": "object",
+        "properties": {
+          "resultMessage": {
+            "type": "string",
+            "description": "A message indicating the result of the operation",
+            "nullable": true
+          },
+          "weatherDailySummary": {
+            "$ref": "#/components/schemas/WeatherDailySummaryDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeatherDailySummaryDto": {
+        "type": "object",
+        "properties": {
+          "maximumTemperature": {
+            "type": "number",
+            "description": "The max temperature for today in Celsius",
+            "format": "double"
+          },
+          "minimumTemperature": {
+            "type": "number",
+            "description": "The min temperature for today in Celsius",
+            "format": "double"
+          },
+          "maxWindSpeed": {
+            "type": "number",
+            "description": "The max speed wind for today",
+            "format": "double"
+          },
+          "humidity": {
+            "type": "number",
+            "description": "The value of the humidity",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

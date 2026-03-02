@@ -5,8 +5,10 @@ using MyDay.Core.Application.Models;
 using MyDay.Core.Application.Models.Music;
 using MyDay.Core.Application.Models.News;
 using MyDay.Core.Application.Models.Weather;
+using MyDay.Core.Infrastructure.Abstractions;
 using MyDay.Core.Services.Abstractions;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 
 namespace MyDay.Core.Application.Concrete
@@ -15,6 +17,7 @@ namespace MyDay.Core.Application.Concrete
     {
         private ILogger<DailyTipsOperationsService> _logger;
         private IConfiguration _configuration;
+        private ICachingOperations _cachingOperationsService;
 
         private INewsOperations _newsOperationsService; 
         private IWeatherOperations _weatherOperationsService;
@@ -22,12 +25,14 @@ namespace MyDay.Core.Application.Concrete
 
         public DailyTipsOperationsService(ILogger<DailyTipsOperationsService> logger,
             IConfiguration configuration,
+            ICachingOperations cachingOperationsService,
             INewsOperations newsOperationsService,
             IWeatherOperations weatherOperationsService,
             IMusicOperations musicOperationsService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _cachingOperationsService = cachingOperationsService ?? throw new ArgumentNullException(nameof(cachingOperationsService));
             _newsOperationsService = newsOperationsService ?? throw new ArgumentNullException(nameof(newsOperationsService));
             _weatherOperationsService = weatherOperationsService ?? throw new ArgumentNullException(nameof(weatherOperationsService));
             _musicOperationsService = musicOperationsService ?? throw new ArgumentNullException(nameof(musicOperationsService)); ;
@@ -39,15 +44,36 @@ namespace MyDay.Core.Application.Concrete
         {
             try
             {
-                var dailyTips = new DayTipsModel();
-                int topHeadlinesCount = _configuration.GetValue<int>("DailyTipsSettings:TopHeadlinesCount");
-                int playlistsCount = _configuration.GetValue<int>("DailyTipsSettings:PlaylistsCount");
+                string filterConcatenated = $"newsCategory:{newsFilteringCriteria.Category}|" +
+                    $"newsKeyword:{newsFilteringCriteria.Keyword}|" +
+                    $"weatherLat:{weatherFilteringCriteria.Latitude.ToString()}|" +
+                    $"weatherLon:{weatherFilteringCriteria.Longitude.ToString()}|" +
+                    $"musicKeyword:{musicFilteringCriteria.Keyword}";
+                string filterConcatenatedEncoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(filterConcatenated));
+                string cacheKey = $"dailytipquery:{filterConcatenatedEncoded}";
 
-                dailyTips.News = await this.GetNewsTopHeadlines(newsFilteringCriteria, topHeadlinesCount);
-                dailyTips.WeatherSummary = await this.GetWeatherSummary(weatherFilteringCriteria);
-                dailyTips.Playlists = await this.GetMusicPlaylists(musicFilteringCriteria, playlistsCount);
+                var (isCached, cacheValue) = await _cachingOperationsService.GetSetCacheEntry(cacheKey, async () =>
+                {
+                    int topHeadlinesCount = _configuration.GetValue<int>("DailyTipsSettings:TopHeadlinesCount");
+                    int playlistsCount = _configuration.GetValue<int>("DailyTipsSettings:PlaylistsCount");
 
-                return dailyTips;
+                    var getTopNewsTask = this.GetNewsTopHeadlines(newsFilteringCriteria, topHeadlinesCount);
+                    var getWeatherSummaryTask = this.GetWeatherSummary(weatherFilteringCriteria);
+                    var getMusicPlaylistsTask = this.GetMusicPlaylists(musicFilteringCriteria, playlistsCount);
+                    await Task.WhenAll(getTopNewsTask, getWeatherSummaryTask, getMusicPlaylistsTask);
+
+                    return new DayTipsModel
+                    {
+                        News = getTopNewsTask.Result,
+                        WeatherSummary = getWeatherSummaryTask.Result,
+                        Playlists = getMusicPlaylistsTask.Result
+                    };
+                });
+
+                if (isCached)
+                    return cacheValue;
+
+                return null;
             }
             catch (Exception exception) 
             {

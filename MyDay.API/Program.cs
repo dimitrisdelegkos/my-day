@@ -20,7 +20,6 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
-builder.Services.AddResponseCaching();
 builder.Services.AddHttpClient();
 
 //=> HTTP Clients
@@ -41,7 +40,15 @@ builder.Services.AddHttpClient("tidal-api-auth", client =>
     client.Timeout = TimeSpan.FromSeconds(configuration.GetValue<int>("TidalAPISettings:Timeout"));
 });
 
+//=> Caching
+builder.Services.AddMemoryCache(); 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = configuration.GetValue<string>("CacheSettings:RedisConnectionString");
+});
+
 //=> MyDay.Core
+builder.Services.AddScoped<ICachingOperations, CachingOperationsService>();
 builder.Services.AddScoped<IHttpOperations, HttpOperationsService>();
 builder.Services.AddScoped<INewsOperations, NewsAPIOperationsService>();
 builder.Services.AddScoped<IWeatherOperations, OpenWeatherAPIOperationsService>();
@@ -66,7 +73,6 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My Day API");
 });
 
-app.UseResponseCaching();
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();

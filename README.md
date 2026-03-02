@@ -22,7 +22,7 @@ More specifically **MyDay** integrates with three different external APIs, fetch
 
 **MyDay** accepts and returns data that comply to the JSON format.
 
-The above endpoints, their inputs and outputs are described in details in the respective swagger file: `/swagger/index.html`.
+The above endpoints, their inputs and outputs are described in details in the respective swagger file: [/swagger/index.html](https://github.com/dimitrisdelegkos/my-day/blob/master/myday-api-definition.json).
 
 ### Configuration
 The basic objects included in the configuration of the system are the following:
